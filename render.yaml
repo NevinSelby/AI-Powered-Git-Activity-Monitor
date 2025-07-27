@@ -2,7 +2,7 @@ services:
   - type: web
     name: ai-powered-git-activity-monitor
     env: node
-    buildCommand: npm run build:render
+    buildCommand: ./build.sh
     startCommand: npm start
     envVars:
       - key: NODE_ENV
