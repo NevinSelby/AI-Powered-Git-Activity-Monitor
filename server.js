@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 
 // Load environment variables from .secrets file (only in development)
 if (process.env.NODE_ENV !== 'production') {
@@ -61,7 +61,7 @@ app.use(express.json());
 const staticPath = path.join(__dirname, 'client/dist');
 console.log('🔍 Checking for static files at:', staticPath);
 console.log('🔍 Current directory:', __dirname);
-console.log('🔍 Directory contents:', require('fs').readdirSync(__dirname));
+console.log('🔍 Directory contents:', readdirSync(__dirname));
 
 if (existsSync(staticPath)) {
   app.use(express.static(staticPath, {
