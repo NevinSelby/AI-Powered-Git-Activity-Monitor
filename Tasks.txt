@@ -1,0 +1,66 @@
+Overview
+Build an AI-powered (like everything else) code-change warning system that
+continuously ingests public GitHub activity, detects suspicious patterns or
+one-off anomalies, and streams incident summaries to a real-time user
+interface.
+
+Primary data source
+GitHub Global Events API – poll `https://api.github.com/events`
+* Use exponential back-off (5 000 req/hr per token limit)
+* Authenticate with a personal-access token from github
+
+Challenge
+1. Signal extraction: spot failing `workflow_run`s, force-pushes to `main`,
+bursty issue creation, etc.
+2. Summarization: compress root cause, impact, and next steps into 3-5
+bullets each.
+3. Presentation: surface those summaries instantly in a human-friendly UI.
+
+Submission
+Deliver three artifacts:
+1. Backend service
+* Database: store raw github payloads + generated summaries
+* Message queue: off-load summarization jobs so polling and UI updates stay snappy. Can be as simple as redis queue
+* Endpoints:
+    * `GET /summary?since=TIMESTAMP` – JSON array of summaries
+    * `GET /stream` – SSE stream of new summaries
+* Poll the Global Events API, filter for interesting events, push to queue, write DB, emit SSE
+* **Rate-limit handling** – respect 403/429, jittered back-off
+* **Security** – never log secrets or full request headers in prod
+
+2. Frontend UI
+* Whatever framework you want - we recommend React (or Svelte)
+* Connect to `/stream` (EventSource) and render a **live incident feed**:
+    * Each card shows repo, event type, timestamp (relative & absolute), and your 3-5-bullet summary
+    * Clicking a card reveals raw JSON + any extracted log snippets
+* Looks / UX - all your call but some suggestions:
+    * Responsive layout (desktop & mobile).
+    * Dark-mode toggle
+    * Subtle auto-scroll or “new incident” toast so graders notice fresh data within ~10 s.
+    * Metrics overlay, repo filter, keyboard nav, fancy theming
+    * Minimal animation is fine; no need for heavy charts unless you want bonus flair.
+* Host the static bundle with the backend or via CDN; grader hits `<BASE_URL>/` and sees activity flowing.
+* Observable or three.js graphics - things like GitHub Globe
+    ** https://github.com/globe
+    ** https://github.blog/engineering/how-we-built-the-github-globe
+
+3. Live deployment & README
+* Deploy on Fly.io, Render, AWS, etc., and share the base URL
+* OK to pre-seed synthetic summaries if the public feed is quiet or you’re rate-limited. (Point to a high-traffic repo list if you prefer real data)
+
+Bonus points
+1. Function-calling agent that grabs workflow logs and embeds key error lines
+2. MCP server wrapper so external clients can subscribe
+
+Evaluation
+* Functionality – events in → summaries out, UI updates live
+* Backend craft – clear API contracts, DB+queue design, retries, tests
+* Frontend polish – clarity, responsiveness, intuitive interactions
+* Code quality – readable, modular, ≥ basic test coverage
+* Deployment – grader can load URL and see real or seeded incidents promptly
+
+Rules
+* Any language / framework is fine.
+* Any AI / LLM service may be used—list them in the README.
+* Target turnaround: **≤ 3 days**.
+* AI assistance is encouraged -- we recommend Claude Sonnet 4 on Cursor :)
