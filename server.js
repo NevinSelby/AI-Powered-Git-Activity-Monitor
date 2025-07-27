@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 
 // Load environment variables from .secrets file (only in development)
 if (process.env.NODE_ENV !== 'production') {
@@ -58,15 +58,21 @@ app.use(cors({
 app.use(express.json());
 
 // Serve static frontend files with cache busting
-app.use(express.static(path.join(__dirname, 'client/dist'), {
-  etag: false,
-  lastModified: false,
-  setHeaders: (res, path) => {
-    if (path.endsWith('.html')) {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+const staticPath = path.join(__dirname, 'client/dist');
+if (existsSync(staticPath)) {
+  app.use(express.static(staticPath, {
+    etag: false,
+    lastModified: false,
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
     }
-  }
-}));
+  }));
+  console.log('✅ Static files served from:', staticPath);
+} else {
+  console.error('❌ Static files not found at:', staticPath);
+}
 
 // API Routes
 app.get('/api/summary', async (req, res) => {
@@ -223,6 +229,10 @@ database.saveSummary = async function(summary) {
 // Start services
 async function startServer() {
   try {
+    // Initialize database first
+    await database.init();
+    console.log('✅ Database initialized');
+
     // Validate environment variables
     if (!process.env.GEMINI_API_KEY) {
       console.error('❌ GEMINI_API_KEY is REQUIRED for AI summarization!');
