@@ -6,19 +6,21 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
 
-// Load environment variables from .secrets file
-try {
-  const secrets = readFileSync('.secrets', 'utf8');
-  secrets.split('\n').forEach(line => {
-    if (line.trim() && !line.startsWith('#')) {
-      const [key, value] = line.split('=');
-      if (key && value) {
-        process.env[key.trim()] = value.trim();
+// Load environment variables from .secrets file (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    const secrets = readFileSync('.secrets', 'utf8');
+    secrets.split('\n').forEach(line => {
+      if (line.trim() && !line.startsWith('#')) {
+        const [key, value] = line.split('=');
+        if (key && value) {
+          process.env[key.trim()] = value.trim();
+        }
       }
-    }
-  });
-} catch (error) {
-  console.error('❌ Failed to load .secrets file:', error.message);
+    });
+  } catch (error) {
+    console.error('❌ Failed to load .secrets file:', error.message);
+  }
 }
 
 // Import modules after environment variables are loaded
@@ -49,7 +51,7 @@ app.use(helmet({
 app.use(compression());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-app-name.onrender.com'] 
+    ? ['https://ai-powered-git-activity-monitor.onrender.com', 'https://your-app-name.onrender.com'] 
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
