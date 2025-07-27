@@ -85,6 +85,13 @@ if (existsSync(staticPath)) {
   console.log('✅ Static files served from:', staticPath);
 } else {
   console.error('❌ Static files not found at:', staticPath);
+  
+  // Try to serve the client directory directly as fallback
+  if (existsSync(clientPath)) {
+    app.use('/client', express.static(clientPath));
+    console.log('✅ Serving client directory as fallback');
+  }
+  
   // Create a simple fallback response
   app.get('*', (req, res) => {
     res.status(200).send(`
@@ -100,6 +107,7 @@ if (existsSync(staticPath)) {
           <p>Backend is running successfully!</p>
           <p>API Health: <a href="/api/health">/api/health</a></p>
           <p>API Summary: <a href="/api/summary">/api/summary</a></p>
+          <p>Test Page: <a href="/client/test.html">/client/test.html</a></p>
           <p>Frontend build files are missing. Check the deployment logs.</p>
         </body>
       </html>

@@ -2,7 +2,7 @@ services:
   - type: web
     name: ai-powered-git-activity-monitor
     env: node
-    buildCommand: ./build.sh
+    buildCommand: npm install && cd client && npm install && npm run build && cd .. && ls -la client/dist/
     startCommand: npm start
     envVars:
       - key: NODE_ENV

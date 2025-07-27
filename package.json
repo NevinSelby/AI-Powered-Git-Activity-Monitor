@@ -11,6 +11,7 @@
     "build": "cd client && npm run build",
     "build:verify": "cd client && npm run build && ls -la dist/",
     "build:render": "npm install && cd client && npm install && npm run build && ls -la dist/ && cd .. && node build-verify.js",
+    "postinstall": "cd client && npm install",
     "start": "node server.js",
     "install:all": "npm install && cd client && npm install"
   },
