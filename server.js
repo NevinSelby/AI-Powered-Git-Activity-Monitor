@@ -63,6 +63,15 @@ console.log('🔍 Checking for static files at:', staticPath);
 console.log('🔍 Current directory:', __dirname);
 console.log('🔍 Directory contents:', readdirSync(__dirname));
 
+// Check if client directory exists
+const clientPath = path.join(__dirname, 'client');
+if (existsSync(clientPath)) {
+  console.log('✅ Client directory exists');
+  console.log('🔍 Client directory contents:', readdirSync(clientPath));
+} else {
+  console.log('❌ Client directory not found');
+}
+
 if (existsSync(staticPath)) {
   app.use(express.static(staticPath, {
     etag: false,

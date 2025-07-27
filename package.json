@@ -10,6 +10,7 @@
     "dev:client": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "build:verify": "cd client && npm run build && ls -la dist/",
+    "build:render": "npm install && cd client && npm install && npm run build && ls -la dist/ && cd ..",
     "start": "node server.js",
     "install:all": "npm install && cd client && npm install"
   },
