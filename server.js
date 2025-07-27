@@ -59,6 +59,10 @@ app.use(express.json());
 
 // Serve static frontend files with cache busting
 const staticPath = path.join(__dirname, 'client/dist');
+console.log('🔍 Checking for static files at:', staticPath);
+console.log('🔍 Current directory:', __dirname);
+console.log('🔍 Directory contents:', require('fs').readdirSync(__dirname));
+
 if (existsSync(staticPath)) {
   app.use(express.static(staticPath, {
     etag: false,
@@ -72,6 +76,26 @@ if (existsSync(staticPath)) {
   console.log('✅ Static files served from:', staticPath);
 } else {
   console.error('❌ Static files not found at:', staticPath);
+  // Create a simple fallback response
+  app.get('*', (req, res) => {
+    res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>AI-Powered Git Activity Monitor</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+        </head>
+        <body>
+          <h1>AI-Powered Git Activity Monitor</h1>
+          <p>Backend is running successfully!</p>
+          <p>API Health: <a href="/api/health">/api/health</a></p>
+          <p>API Summary: <a href="/api/summary">/api/summary</a></p>
+          <p>Frontend build files are missing. Check the deployment logs.</p>
+        </body>
+      </html>
+    `);
+  });
 }
 
 // API Routes
