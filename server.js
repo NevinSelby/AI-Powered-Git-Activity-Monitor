@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, existsSync, readdirSync } from 'fs';
+import { readFileSync } from 'fs';
 
 // Load environment variables from .secrets file (only in development)
 if (process.env.NODE_ENV !== 'production') {
@@ -34,86 +34,23 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Store SSE clients
+// SSE clients set
 const sseClients = new Set();
 
 // Middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      connectSrc: ["'self'"],
-    },
-  },
-}));
+app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://ai-powered-git-activity-monitor.onrender.com', 'https://your-app-name.onrender.com'] 
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://ai-powered-git-activity-monitor.onrender.com']
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
 app.use(express.json());
 
-// Serve static frontend files with cache busting
+// Serve static frontend files
 const staticPath = path.join(__dirname, 'client/dist');
-console.log('🔍 Checking for static files at:', staticPath);
-console.log('🔍 Current directory:', __dirname);
-console.log('🔍 Directory contents:', readdirSync(__dirname));
-
-// Check if client directory exists
-const clientPath = path.join(__dirname, 'client');
-if (existsSync(clientPath)) {
-  console.log('✅ Client directory exists');
-  console.log('🔍 Client directory contents:', readdirSync(clientPath));
-} else {
-  console.log('❌ Client directory not found');
-}
-
-if (existsSync(staticPath)) {
-  app.use(express.static(staticPath, {
-    etag: false,
-    lastModified: false,
-    setHeaders: (res, path) => {
-      if (path.endsWith('.html')) {
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      }
-    }
-  }));
-  console.log('✅ Static files served from:', staticPath);
-} else {
-  console.error('❌ Static files not found at:', staticPath);
-  
-  // Try to serve the client directory directly as fallback
-  if (existsSync(clientPath)) {
-    app.use('/client', express.static(clientPath));
-    console.log('✅ Serving client directory as fallback');
-  }
-  
-  // Create a simple fallback response
-  app.get('*', (req, res) => {
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>AI-Powered Git Activity Monitor</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-        </head>
-        <body>
-          <h1>AI-Powered Git Activity Monitor</h1>
-          <p>Backend is running successfully!</p>
-          <p>API Health: <a href="/api/health">/api/health</a></p>
-          <p>API Summary: <a href="/api/summary">/api/summary</a></p>
-          <p>Test Page: <a href="/client/test.html">/client/test.html</a></p>
-          <p>Frontend build files are missing. Check the deployment logs.</p>
-        </body>
-      </html>
-    `);
-  });
-}
+app.use(express.static(staticPath));
 
 // API Routes
 app.get('/api/summary', async (req, res) => {
