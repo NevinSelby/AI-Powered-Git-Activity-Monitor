@@ -4,20 +4,37 @@ services:
     env: node
     buildCommand: |
       echo "=== BUILD START ==="
+      echo "Node version: $(node --version)"
+      echo "NPM version: $(npm --version)"
       pwd
       ls -la
+      echo "=== INSTALLING ROOT DEPS ==="
       npm install
       echo "=== CLIENT BUILD ==="
       cd client
+      echo "Client directory: $(pwd)"
       ls -la
+      echo "=== INSTALLING CLIENT DEPS ==="
       npm install
+      echo "=== RUNNING BUILD ==="
       npm run build
       echo "=== BUILD VERIFICATION ==="
       ls -la
-      ls -la dist/
+      if [ -d "dist" ]; then
+        echo "✅ Dist directory exists"
+        ls -la dist/
+      else
+        echo "❌ Dist directory missing"
+      fi
       cd ..
       echo "=== FINAL CHECK ==="
-      ls -la client/dist/
+      ls -la client/
+      if [ -d "client/dist" ]; then
+        echo "✅ client/dist exists"
+        ls -la client/dist/
+      else
+        echo "❌ client/dist missing"
+      fi
       echo "=== BUILD END ==="
     startCommand: npm start
     envVars:
