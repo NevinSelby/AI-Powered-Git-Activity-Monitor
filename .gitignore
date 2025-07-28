@@ -2,11 +2,6 @@
 node_modules/
 client/node_modules/
 
-# Build outputs
-client/dist/
-dist/
-build/
-
 # Environment variables and secrets
 .env
 .env.local
