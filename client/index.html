@@ -1,14 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI-Powered Git Activity Monitor</title>
-    <meta name="description" content="Real-time GitHub incident detection and AI-powered summarization">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
-  </head>
-  <body>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .pulse-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        function App() {
+            const [incidents, setIncidents] = useState([]);
+            const [connectionStatus, setConnectionStatus] = useState('connected');
+            
+            useEffect(() => {
+                fetch('/api/summary')
+                    .then(res => res.json())
+                    .then(data => setIncidents(data))
+                    .catch(console.error);
+                
+                const eventSource = new EventSource('/api/stream');
+                eventSource.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'new_summary') {
+                        setIncidents(prev => [data.data, ...prev].slice(0, 50));
+                    }
+                };
+                
+                return () => eventSource.close();
+            }, []);
+            
+            return (
+                <div className="min-h-screen p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex justify-between items-center mb-8">
+                            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                                🔍 AI-Powered Git Activity Monitor
+                            </h1>
+                            <div className="flex items-center space-x-2">
+                                <span className="text-green-500">●</span>
+                                <span className="text-sm text-gray-700 dark:text-gray-300">Live</span>
+                            </div>
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+                                Recent Incidents
+                            </h2>
+                            {incidents.length === 0 ? (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    No incidents detected yet. Monitoring GitHub activity...
+                                </p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {incidents.map((incident, index) => (
+                                        <div key={index} className="border border-gray-200 dark:border-gray-700 rounded p-4">
+                                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                                                {incident.summary?.overall || incident.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                                                {incident.repoName} • {incident.eventType}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
 </html> 

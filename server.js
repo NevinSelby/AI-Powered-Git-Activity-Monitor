@@ -50,7 +50,16 @@ app.use(express.json());
 
 // Serve static frontend files
 const staticPath = path.join(__dirname, 'client/dist');
-app.use(express.static(staticPath));
+const clientPath = path.join(__dirname, 'client');
+
+// Check if dist exists, otherwise serve client directory
+if (require('fs').existsSync(staticPath)) {
+  app.use(express.static(staticPath));
+  console.log('✅ Serving static files from:', staticPath);
+} else {
+  console.log('⚠️ Dist not found, serving client directory');
+  app.use(express.static(clientPath));
+}
 
 // API Routes
 app.get('/api/summary', async (req, res) => {
@@ -135,7 +144,14 @@ app.get('/api/health', (req, res) => {
 
 // Serve frontend for all other routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
+  const distIndex = path.join(__dirname, 'client/dist/index.html');
+  const clientIndex = path.join(__dirname, 'client/index.html');
+  
+  if (require('fs').existsSync(distIndex)) {
+    res.sendFile(distIndex);
+  } else {
+    res.sendFile(clientIndex);
+  }
 });
 
 // Broadcast new summary to all SSE clients
