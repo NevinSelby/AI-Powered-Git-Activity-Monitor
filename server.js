@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync } from 'fs';
 
 // Load environment variables from .secrets file (only in development)
 if (process.env.NODE_ENV !== 'production') {
@@ -50,16 +50,7 @@ app.use(express.json());
 
 // Serve static frontend files
 const staticPath = path.join(__dirname, 'client/dist');
-const clientPath = path.join(__dirname, 'client');
-
-// Check if dist exists, otherwise serve client directory
-if (existsSync(staticPath)) {
-  app.use(express.static(staticPath));
-  console.log('✅ Serving static files from:', staticPath);
-} else {
-  console.log('⚠️ Dist not found, serving client directory');
-  app.use(express.static(clientPath));
-}
+app.use(express.static(staticPath));
 
 // API Routes
 app.get('/api/summary', async (req, res) => {
@@ -144,14 +135,7 @@ app.get('/api/health', (req, res) => {
 
 // Serve frontend for all other routes
 app.get('*', (req, res) => {
-  const distIndex = path.join(__dirname, 'client/dist/index.html');
-  const clientIndex = path.join(__dirname, 'client/index.html');
-  
-  if (existsSync(distIndex)) {
-    res.sendFile(distIndex);
-  } else {
-    res.sendFile(clientIndex);
-  }
+  res.sendFile(path.join(__dirname, 'client/dist/index.html'));
 });
 
 // Broadcast new summary to all SSE clients
