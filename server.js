@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 
 // Load environment variables from .secrets file (only in development)
 if (process.env.NODE_ENV !== 'production') {
@@ -53,7 +53,7 @@ const staticPath = path.join(__dirname, 'client/dist');
 const clientPath = path.join(__dirname, 'client');
 
 // Check if dist exists, otherwise serve client directory
-if (require('fs').existsSync(staticPath)) {
+if (existsSync(staticPath)) {
   app.use(express.static(staticPath));
   console.log('✅ Serving static files from:', staticPath);
 } else {
@@ -147,7 +147,7 @@ app.get('*', (req, res) => {
   const distIndex = path.join(__dirname, 'client/dist/index.html');
   const clientIndex = path.join(__dirname, 'client/index.html');
   
-  if (require('fs').existsSync(distIndex)) {
+  if (existsSync(distIndex)) {
     res.sendFile(distIndex);
   } else {
     res.sendFile(clientIndex);
